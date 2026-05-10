@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>R216 — Stats Flashcards</title>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500&family=Syne:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0c0d0e;
+  --surface:#141516;
+  --surface2:#1c1d1e;
+  --border:rgba(255,255,255,0.07);
+  --border2:rgba(255,255,255,0.14);
+  --text:#ede9e3;
+  --muted:#7a7672;
+  --accent:#7eb8a0;
+  --accent2:#a8d4c0;
+  --excel:#1f7244;
+  --matlab:#8040c0;
+  --stats:#b06040;
+  --proba:#4080b0;
+  --flip:0.5s;
+}
+body{background:var(--bg);color:var(--text);font-family:'Syne',sans-serif;min-height:100vh;overflow-x:hidden}
+
+/* HEADER */
+header{padding:1.8rem 2.5rem 1.2rem;border-bottom:0.5px solid var(--border);display:flex;align-items:center;gap:1rem;flex-wrap:wrap;justify-content:space-between}
+.logo{display:flex;align-items:baseline;gap:.8rem}
+.logo h1{font-family:'Instrument Serif',serif;font-size:1.9rem;letter-spacing:-.02em;color:var(--text)}
+.logo .tag{font-size:.65rem;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);font-weight:600;border:0.5px solid var(--border2);padding:.2rem .5rem;border-radius:3px}
+.progress-info{font-size:.75rem;color:var(--muted);font-weight:400}
+.progress-info span{color:var(--accent);font-weight:600}
+
+/* TABS */
+.tabs-wrap{position:relative;border-bottom:.5px solid var(--border)}
+.tabs-scroll{display:flex;gap:.25rem;padding:.75rem 2.5rem;overflow-x:auto;scrollbar-width:none}
+.tabs-scroll::-webkit-scrollbar{display:none}
+.tab{background:none;border:0.5px solid var(--border);color:var(--muted);font-family:'Syne',sans-serif;font-size:.7rem;font-weight:600;letter-spacing:.06em;text-transform:uppercase;padding:.35rem .8rem;border-radius:4px;cursor:pointer;white-space:nowrap;transition:all .2s}
+.tab:hover{border-color:var(--border2);color:var(--text)}
+.tab.active{background:var(--surface2);border-color:var(--accent);color:var(--accent)}
+.tab.cat-excel.active{border-color:var(--excel);color:#3db87a}
+.tab.cat-matlab.active{border-color:var(--matlab);color:#b070e0}
+.tab.cat-stats.active{border-color:var(--stats);color:#d08060}
+.tab.cat-proba.active{border-color:var(--proba);color:#60a0d0}
+.tab-arrow{position:absolute;top:0;bottom:0;width:40px;display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:2;background:none;border:none;color:var(--muted);font-size:1rem;transition:color .2s;opacity:0;pointer-events:none}
+.tab-arrow.visible{opacity:1;pointer-events:all}
+.tab-arrow:hover{color:var(--text)}
+.tab-arrow.left{left:0;background:linear-gradient(to right,var(--bg) 60%,transparent)}
+.tab-arrow.right{right:0;background:linear-gradient(to left,var(--bg) 60%,transparent)}
+
+/* MAIN AREA */
+main{display:flex;flex-direction:column;align-items:center;padding:2.5rem 1rem;gap:2rem;min-height:60vh}
+
+/* CARD */
+.card-area{perspective:1200px;width:100%;max-width:660px;cursor:pointer}
+.card-inner{position:relative;width:100%;transform-style:preserve-3d;transition:transform var(--flip) cubic-bezier(.4,0,.2,1);border-radius:12px}
+.card-inner.flipped{transform:rotateY(180deg)}
+.card-face{position:relative;backface-visibility:hidden;border-radius:12px;padding:2.5rem 2.5rem 2rem;min-height:260px;display:flex;flex-direction:column;justify-content:space-between;border:.5px solid var(--border2)}
+.card-front{background:var(--surface);z-index:2}
+.card-back{background:var(--surface2);transform:rotateY(180deg);position:absolute;top:0;left:0;width:100%;min-height:260px}
+
+.card-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.2rem}
+.card-cat{font-size:.6rem;letter-spacing:.1em;text-transform:uppercase;font-weight:700;padding:.2rem .5rem;border-radius:3px;border:.5px solid}
+.cat-excel .card-cat{color:#3db87a;border-color:var(--excel)}
+.cat-matlab .card-cat{color:#b070e0;border-color:var(--matlab)}
+.cat-stats .card-cat{color:#d08060;border-color:var(--stats)}
+.cat-proba .card-cat{color:#60a0d0;border-color:var(--proba)}
+.cat-essentiel .card-cat{color:var(--accent);border-color:var(--accent)}
+.cat-essentiel.card-face{border-color:rgba(126,184,160,.2)}
+.card-num{font-size:.65rem;color:var(--muted);font-family:'JetBrains Mono',monospace}
+
+.card-q{font-family:'Instrument Serif',serif;font-size:1.35rem;line-height:1.5;color:var(--text);flex:1;display:flex;align-items:center}
+.card-a{font-size:.88rem;line-height:1.7;color:var(--text);flex:1;display:flex;align-items:flex-start;padding-top:.5rem}
+.card-a code{font-family:'JetBrains Mono',monospace;font-size:.78rem;background:rgba(255,255,255,.06);padding:.15rem .4rem;border-radius:3px;color:var(--accent2)}
+.card-a pre{font-family:'JetBrains Mono',monospace;font-size:.75rem;background:rgba(255,255,255,.04);border:.5px solid var(--border2);padding:.8rem 1rem;border-radius:6px;color:var(--accent2);line-height:1.6;white-space:pre-wrap;width:100%}
+
+.card-hint{font-size:.6rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-top:.8rem;text-align:center}
+.card-face.card-back .card-hint{color:rgba(255,255,255,.15)}
+
+.card-face .side-label{position:absolute;top:.9rem;right:1rem;font-size:.55rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+
+/* CONTROLS */
+.controls{display:flex;gap:.75rem;align-items:center;flex-wrap:wrap;justify-content:center}
+.btn{background:var(--surface);border:.5px solid var(--border2);color:var(--muted);font-family:'Syne',sans-serif;font-size:.7rem;font-weight:600;letter-spacing:.06em;text-transform:uppercase;padding:.55rem 1.1rem;border-radius:6px;cursor:pointer;transition:all .18s}
+.btn:hover{color:var(--text);border-color:rgba(255,255,255,.25)}
+.btn.primary{background:rgba(126,184,160,.1);border-color:var(--accent);color:var(--accent)}
+.btn.primary:hover{background:rgba(126,184,160,.18)}
+.btn.danger{border-color:rgba(200,80,70,.4);color:#c05048}
+.btn.danger:hover{background:rgba(200,80,70,.1)}
+
+/* KNOWN/UNKNOWN */
+.verdict{display:flex;gap:.75rem;justify-content:center}
+.verdict-btn{flex:1;max-width:160px;padding:.6rem 1rem;border-radius:8px;font-family:'Syne',sans-serif;font-size:.72rem;font-weight:700;letter-spacing:.05em;text-transform:uppercase;cursor:pointer;transition:all .2s;border:.5px solid}
+.verdict-btn.known{background:rgba(90,158,111,.1);border-color:rgba(90,158,111,.4);color:#5a9e6f}
+.verdict-btn.known:hover{background:rgba(90,158,111,.2)}
+.verdict-btn.unknown{background:rgba(180,60,60,.08);border-color:rgba(180,60,60,.35);color:#b04040}
+.verdict-btn.unknown:hover{background:rgba(180,60,60,.15)}
+
+/* PROGRESS BAR */
+.progress-bar{width:100%;max-width:660px;height:3px;background:var(--surface2);border-radius:2px;overflow:hidden}
+.progress-fill{height:100%;background:var(--accent);border-radius:2px;transition:width .4s ease}
+
+/* STATS BAR */
+.stats-bar{display:flex;gap:1.5rem;font-size:.7rem;color:var(--muted);flex-wrap:wrap;justify-content:center}
+.stats-bar .s{display:flex;align-items:center;gap:.3rem}
+.stats-bar .s b{font-weight:700}
+.stats-bar .s.ok b{color:#5a9e6f}
+.stats-bar .s.ko b{color:#b04040}
+.stats-bar .s.to b{color:var(--accent)}
+
+/* EMPTY */
+.empty{text-align:center;padding:3rem;color:var(--muted);font-size:.9rem}
+.empty .emoji{font-size:2.5rem;margin-bottom:1rem}
+
+/* TOAST */
+.toast{position:fixed;bottom:2rem;left:50%;transform:translateX(-50%) translateY(4rem);background:var(--surface2);border:.5px solid var(--border2);padding:.6rem 1.2rem;border-radius:8px;font-size:.75rem;color:var(--text);opacity:0;transition:all .3s;z-index:999;white-space:nowrap}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+@media(max-width:600px){
+  header{padding:1.2rem 1.2rem .8rem}
+  .logo h1{font-size:1.5rem}
+  .tabs-scroll{padding:.6rem 1.2rem}
+  main{padding:1.5rem .75rem}
+  .card-face{padding:1.8rem 1.5rem 1.5rem;min-height:220px}
+  .card-q{font-size:1.1rem}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <h1>R216 Stats</h1>
+    <span class="tag">Flashcards TP</span>
+  </div>
+  <div class="progress-info">
+    <span id="knownCount">0</span> connues sur <span id="totalCount">0</span>
+  </div>
+</header>
+
+<div class="tabs-wrap">
+  <button class="tab-arrow left" id="arrowLeft" onclick="scrollTabs(-1)">‹</button>
+  <div class="tabs-scroll" id="tabsContainer"></div>
+  <button class="tab-arrow right" id="arrowRight" onclick="scrollTabs(1)">›</button>
+</div>
+
+<main>
+  <div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+  <div class="stats-bar">
+    <span class="s ok">✓ Connues : <b id="s-known">0</b></span>
+    <span class="s ko">✗ À revoir : <b id="s-unknown">0</b></span>
+    <span class="s to">◎ Restantes : <b id="s-left">0</b></span>
+  </div>
+
+  <div class="card-area" id="cardArea" onclick="flipCard()">
+    <div class="card-inner" id="cardInner">
+      <div class="card-face card-front" id="cardFront">
+        <div class="card-header">
+          <span class="card-cat" id="frontCat"></span>
+          <span class="card-num" id="cardNum"></span>
+        </div>
+        <div class="card-q" id="cardQ"></div>
+        <div class="card-hint">↑ cliquer pour voir la réponse</div>
+        <span class="side-label">Question</span>
+      </div>
+      <div class="card-face card-back" id="cardBack">
+        <div class="card-header">
+          <span class="card-cat" id="backCat"></span>
+          <span class="card-num" id="backNum"></span>
+        </div>
+        <div class="card-a" id="cardA"></div>
+        <div class="card-hint">↑ cliquer pour remettre la question</div>
+        <span class="side-label">Réponse</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="verdict" id="verdictZone" style="display:none;width:100%;max-width:660px">
+    <button class="verdict-btn unknown" onclick="markCard(false)">✗ À revoir</button>
+    <button class="verdict-btn known" onclick="markCard(true)">✓ Je sais</button>
+  </div>
+
+  <div class="controls">
+    <button class="btn" onclick="prevCard()">← Préc</button>
+    <button class="btn" onclick="nextCard()">Suiv →</button>
+    <button class="btn primary" onclick="shuffleDeck()">⇄ Mélanger</button>
+    <button class="btn" onclick="resetCategory()">↺ Réinitialiser catégorie</button>
+    <button class="btn danger" onclick="resetAll()">✕ Tout reset</button>
+  </div>
+</main>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ─────────────────────────────────────────────
+// DATA
+// ─────────────────────────────────────────────
+const ALL_CARDS = [
+
+// ── ESSENTIELS ────────────────────────────────
+{id:'e01', cat:'Essentiel', q:"Quelle fonction Excel calcule la fréquence d'une valeur dans une plage ?", a:"<code>NB.SI(plage; critère)</code> — Ex : <code>=NB.SI(C$3:C$26; C3)</code> pour compter combien de fois la taille en C3 apparaît dans la colonne C."},
+{id:'e02', cat:'Essentiel', q:"Comment figer une plage dans une formule Excel pour pouvoir la dupliquer ?", a:"Avec le symbole <code>$</code>. Ex : <code>C$3:C$26</code> fige les lignes 3 et 26 → la formule peut être copiée vers le bas sans que la plage bouge."},
+{id:'e03', cat:'Essentiel', q:"Quelle fonction Excel donne la corrélation entre deux séries ?", a:"<code>COEFFICIENT.CORRELATION(plage1; plage2)</code> — renvoie un nombre entre -1 et +1. Valeur diagonale = 1 (corrélation avec soi-même)."},
+{id:'e04', cat:'Essentiel', q:"Quelles 3 fonctions Excel calculent les stats par matière/étudiant ? Pourquoi figer avec $ ?", a:"<code>MOYENNE(plage)</code>, <code>MEDIANE(plage)</code>, <code>ECARTYPE.PEARSON(plage)</code><br><br>Figer avec $ : les données sont en B2:G7 (6 étudiants en colonnes, 6 matières en lignes). Pour la moyenne par matière (colonne I), on écrit en I2 : <code>=MOYENNE($B2:$G2)</code> — on fige les colonnes B et G (<code>$B</code>, <code>$G</code>) pour que la plage reste entre ces 2 colonnes quand on duplique vers le bas. Sans $, en copiant vers I3, Excel décalerait vers C2:H2 au lieu de B3:G3."},
+{id:'e05', cat:'Essentiel', q:"Comment obtenir les quartiles dans Excel ? Quelle est la différence entre QUARTILE et PREVISION ?", a:"<code>QUARTILE(plage; k)</code> avec k=0(min), 1, 2, 3, 4(max). <code>PREVISION(x; y_connus; x_connus)</code> = interpolation linéaire → utiliser col Fi(%) comme x_connus et col xi comme y_connus pour obtenir les déciles."},
+{id:'e06', cat:'Essentiel', q:"Dans Matlab, quelle commande génère le tableau statistique ? Comment supprimer les lignes vides ?", a:"<code>tab_stat = tabulate(tailles)</code> → génère xi, ni, fi(%). Supprimer les zéros : <pre>tab_stat(all(tab_stat(:,2)==0,2),:) = [];</pre>"},
+{id:'e07', cat:'Essentiel', q:"Comment obtenir les cumulés Ni et Fi(%) dans Matlab ?", a:"<pre>tab_cum = cumsum(tab_stat(:,2));</pre>Puis Fi(%) = Ni/n*100. Assembler : <code>[tab_stat, tab_cum]</code>. La notation <code>tab_stat(:,2)</code> = toutes les lignes de la colonne 2."},
+{id:'e08', cat:'Essentiel', q:"Quelle commande Matlab calcule les 5 quantiles (min, Q1, médiane, Q3, max) ?", a:"<pre>quantile(tailles, [0 0.25 0.5 0.75 1])</pre>Renvoie un vecteur de 5 valeurs. La moyenne : <code>mean(tailles)</code>."},
+{id:'e09', cat:'Essentiel', q:"Comment la corrélation inter-étudiants diffère de la corrélation inter-matières dans Matlab ?", a:"Inter-étudiants : <code>corrcoef(notes)</code> → 6×6 (colonnes = étudiants). Inter-matières : <code>corrcoef(notes')</code> → transposition, les matières deviennent des colonnes. La transposition en Matlab s'écrit <code>'</code> (simple quote)."},
+{id:'e10', cat:'Essentiel', q:"Comment afficher un tableau avec des intitulés de colonnes dans Matlab ?", a:"<pre>La_table = array2table(tab);\nles_noms = [\"col1\" \"col2\"];\nLa_table.Properties.VariableNames = les_noms;\nLa_table</pre>Pour les lignes : <code>.Properties.RowNames = ...</code>"},
+
+// ── EXCEL ─────────────────────────────────────
+{id:'x01', cat:'Excel', q:"Expliquer l'ordre des 6 colonnes du tableau statistique sous Excel (TP1).", a:"A: numéro d'ordre (1 à n) | B: données brutes | C: données triées croissant | D: effectifs ni = <code>NB.SI(C$3:C$26;C3)</code> | E: index 1 à r | F-G: xi et ni sans doublon (copier-coller + supprimer manuellement) | H: Ni cumulé | I: fi(%) = ni/n×100 | J: Fi(%) cumulé"},
+{id:'x02', cat:'Excel', q:"Pourquoi ne pas utiliser l'affichage % d'Excel pour les colonnes fi et Fi ?", a:"L'affichage % d'Excel multiplie par 100 à l'écran mais stocke la valeur décimale (0.42 affiché comme 42%). Pour les calculs suivants (PREVISION, interpolation), on a besoin de la valeur numérique 42, pas 0.42. Donc on multiplie manuellement par 100 dans la formule."},
+{id:'x03', cat:'Excel', q:"Comment dupliquer intelligemment la formule COEFFICIENT.CORRELATION pour remplir toute la matrice de corrélation inter-étudiants ?", a:"En B17 : <code>=COEFFICIENT.CORRELATION($B$2:$B$7; B$2:B$7)</code> — figer la première colonne (colonne B = Jo) avec $ sur la colonne. En dupliquant à droite, la 2ème matrice glisse vers William, Jack... La 1ère reste figée."},
+{id:'x04', cat:'Excel', q:"Quelle est la mise en forme conditionnelle à appliquer sur le tableau de corrélation ?", a:"Seuils ±0.7 stockés dans 2 cellules (ex I12 et J12). Mise en forme conditionnelle → 'Supérieur à valeur' en vert (≥0.7) et 'Inférieur à valeur' en rouge (≤-0.7). Permet de visualiser rapidement les liaisons fortes."},
+{id:'x05', cat:'Excel', q:"Comment appliquer la loi normale dans Excel (TP4) ?", a:"<pre>=1/(B$3*PI()^0.5*RACINE(2))*EXP(-(A5-B$2)^2/(2*B$3^2))</pre>Avec B$2=moyenne figée, B$3=écart-type figé, A5=valeur x. Attention : mettre parenthèse après le signe moins dans l'exponentielle."},
+{id:'x06', cat:'Excel', q:"Comment générer 1000 tailles aléatoires suivant une loi normale N(180,10) dans Excel ?", a:"<code>=ARRONDI(LOI.NORMALE.STANDARD.INVERSE(ALEA())*10+180;0)</code> — La fonction inverse de la loi normale standard transforme un aléatoire [0,1] en valeur normalement distribuée. *10 = écart-type, +180 = moyenne, ARRONDI(...;0) = tailles entières en cm."},
+{id:'x07', cat:'Excel', q:"Comment faire la corrélation inter-matières ? Quelle étape supplémentaire par rapport à inter-étudiants ?", a:"Il faut d'abord transposer le tableau original : Copier → Collage spécial → Transposer. Ainsi les matières sont en colonnes. Ensuite même technique : COEFFICIENT.CORRELATION avec la première colonne figée."},
+{id:'x08', cat:'Excel', q:"Quelle est la différence entre ECARTYPE.PEARSON et ECARTYPE.STANDARD ?", a:"<code>ECARTYPE.PEARSON</code> divise par n (population entière). <code>ECARTYPE.STANDARD</code> divise par n-1 (estimateur sur échantillon). Dans les TP on utilise toujours PEARSON car on a toutes les données."},
+{id:'x09', cat:'Excel', q:"Comment créer les 2 graphiques du TP1 (effectifs et pourcentages cumulés) ?", a:"Sélectionner xi + ni (ou xi + fi, Fi) → Insertion → Nuage de points. Important : utiliser 'Nuage de points' et pas un autre type de graphique, car les autres utilisent une numérotation 1 à N en abscisse au lieu des vraies valeurs. Régler min/max de l'axe des abscisses."},
+
+// ── MATLAB ────────────────────────────────────
+{id:'m01', cat:'Matlab', q:"Comment lire un fichier Excel dans Matlab et extraire les données d'un onglet ?", a:"Utiliser la fonction de lecture Excel fournie dans le programme R216_stats1.m. Important : l'onglet ne doit pas contenir de graphique et les noms doivent être corrects. Taper <code>tailles</code> dans la console pour vérifier les données chargées."},
+{id:'m02', cat:'Matlab', q:"Quelle est la syntaxe de base pour afficher du texte avec des variables dans Matlab ?", a:"<pre>disp(['texte ', num2str(valeur), ' suite'])</pre>Crochets = concaténation. Texte entre simples quotes. Nombres convertis avec <code>num2str()</code>. Exemple : <code>disp(['moyenne : ', num2str(mean(tailles))])</code>"},
+{id:'m03', cat:'Matlab', q:"Comment obtenir un tableau cumulatif complet (5 colonnes) et l'afficher avec intitulés dans Matlab ?", a:"<pre>tab_cum = [cumsum(tab_stat(:,2)), cumsum(tab_stat(:,3))];\ntab_final = [tab_stat, tab_cum];\nLa_table = array2table(tab_final);\nnoms = [\"xi\" \"ni\" \"fi\" \"Ni\" \"Fi\"];\nLa_table.Properties.VariableNames = noms;\nLa_table</pre>"},
+{id:'m04', cat:'Matlab', q:"Quelle est la différence entre ; et , dans les crochets Matlab ? Ex : c=[a b] vs c=[a;b]", a:"<code>[a b]</code> = concaténation horizontale (côte à côte) → une ligne plus longue. <code>[a;b]</code> = concaténation verticale (l'un sous l'autre) → plus de lignes. Exemple : <code>stats=[mean(notes); median(notes); std(notes,1)]</code> = 3 lignes."},
+{id:'m05', cat:'Matlab', q:"Comment tracer les graphiques dans Matlab (TP1) ? Commandes essentielles.", a:"<pre>figure\nplot(tab_final(:,1), tab_final(:,3), 'b-')  % courbe bleue\nhold on\nplot(tab_final(:,1), tab_final(:,4), 'r-')  % rouge\ngrid\ntitle('Mon titre')\nbar(xi, ni, 'g')  % histogramme vert</pre>"},
+{id:'m06', cat:'Matlab', q:"Quelle commande Matlab calcule la moyenne, médiane et écart-type par étudiant vs par matière ?", a:"Par étudiant (colonnes) : <code>mean(notes)</code>, <code>median(notes)</code>, <code>std(notes,1)</code> → renvoie 1 ligne par statistique.<br>Par matière (lignes → transposer) : <code>mean(notes')</code>, <code>median(notes')</code>, <code>std(notes',1)</code>"},
+{id:'m07', cat:'Matlab', q:"Comment fonctionne l'indexation des tableaux Matlab ? Ex : tab_stat(:,2) et tab_stat(1:10,1:2)", a:"Syntaxe : <code>tableau(lignes, colonnes)</code>. Le <code>:</code> seul = toutes les lignes/colonnes. Exemples :<br>• <code>tab_stat(:,2)</code> = toute la colonne 2<br>• <code>tab_stat(1:10,1:2)</code> = lignes 1 à 10, colonnes 1 et 2<br>• <code>tab_stat(3,:)</code> = toute la ligne 3"},
+{id:'m08', cat:'Matlab', q:"Quelle est la différence entre travailler dans la console vs l'éditeur Matlab ?", a:"Console : commandes immédiates, résultat visible aussitôt. Éditeur : programme sauvegardé (.m), exécuté en entier. Le point-virgule <code>;</code> en fin de ligne supprime l'affichage du résultat. Sans point-virgule → affichage dans la console. Tester dans la console, puis écrire dans l'éditeur."},
+{id:'m09', cat:'Matlab', q:"Comment transposer une matrice dans Matlab et pourquoi c'est utile pour les stats ?", a:"Avec la simple quote : <code>notes'</code>. Utile car les fonctions Matlab opèrent sur les colonnes. Si les étudiants sont en colonnes, <code>mean(notes)</code> donne la moyenne par étudiant. Transposer pour opérer sur les matières : <code>mean(notes')</code>"},
+{id:'m10', cat:'Matlab', q:"Comment créer des vecteurs de noms (étudiants, matières) dans Matlab ?", a:"<pre>noms = [\"Jo\" \"William\" \"Jack\" \"Averell\" \"Adeline\" \"Leona\"];\nmatieres = [\"maths\" \"physique\" \"techno\" \"anglais\" \"francais\" \"philo\"];\ncarat = [\"moyenne\" \"mediane\" \"ecart type\"];</pre>Utilisés comme intitulés de lignes/colonnes dans les tables."},
+
+// ── STATS (cours, formules) ────────────────────
+{id:'s01', cat:'Stats', q:"Quelles sont les 6 colonnes d'un tableau statistique et leur signification ?", a:"i : index | xi : valeurs distinctes triées croissant | ni : effectifs | Ni : effectifs cumulés (Ni = Σ ni) | fi(%) : fréquences = ni×100/n | Fi(%) : fréquences cumulées = Ni×100/n"},
+{id:'s02', cat:'Stats', q:"Formule de la variance et de l'écart-type. Quelle est l'unité de chacun ?", a:"Variance : σ²X = (1/n)×Σ(di - x̄)². Unité = unité² (ex: m²). Écart-type : σX = √σ²X. Unité = unité (ex: m). C'est pour ça qu'on utilise σ sur les graphiques, pas σ²."},
+{id:'s03', cat:'Stats', q:"Quand prendre la médiane plutôt que la moyenne ?", a:"Quand il y a des valeurs très grandes ou très petites (outliers) qui fausseraient la moyenne. Ex : salaires (quelques très hauts salaires tirent la moyenne vers le haut). La médiane est robuste aux valeurs extrêmes."},
+{id:'s04', cat:'Stats', q:"Comment calculer la corrélation ? Que signifient les valeurs -1, 0, +1 ?", a:"r = (1/n)×Σ((xi-x̄)/σX)×((yi-ȳ)/σY). Valeurs : +1 = liaison parfaite positive (droite montante) | 0 = indépendants | -1 = liaison parfaite négative (droite descendante). Toujours regarder le graphique en plus, car des outliers peuvent fausser r."},
+{id:'s05', cat:'Stats', q:"Comment faire une interpolation linéaire pour trouver un quantile manquant ?", a:"On a (x1,y1) et (x2,y2). On cherche y pour x = 75% (Q3 par ex).<br>a = (y2-y1)/(x2-x1), b = y1 - a×x1, y = a×x + b.<br>Ex: x1=72.91(Fi%), y1=50ans, x2=79.16, y2=52 → a=0.32, b=26.7, y=50.7 ans pour Q3."},
+{id:'s06', cat:'Stats', q:"Moyenne pondérée : formule et exemple. Qu'est-ce que le paradoxe ?", a:"x̄w = Σ(wi×xi) / Σwi. Ex : dev 12 coef 3, prog 14 coef 2, anglais 16 coef 1 → (3×12+2×14+16)/6 = 13.3. Paradoxe : Lisa corrige mieux que Bart en %, mais moins en total → le résultat dépend du nombre de pages traitées."},
+{id:'s07', cat:'Stats', q:"Que représente la boîte à moustaches ? Quels sont ses 5 éléments ?", a:"Représentation graphique sur 1 seule échelle linéaire : min | Q1 (25%) | médiane Q2 (50%) | Q3 (75%) | max. La boîte = Q1 à Q3 (50% des données). Les moustaches s'étendent jusqu'au min et max."},
+
+// ── PROBA / BAYES ─────────────────────────────
+{id:'p01', cat:'Proba', q:"Formule de Bayes complète (version développée sans P(B)). Quand l'utiliser ?", a:"P(A|B) = [P(B|A)×P(A)] / [P(B|A)×P(A) + P(B|¬A)×P(¬A)]<br>Utiliser quand on connaît P(B|A) mais qu'on veut P(A|B). En justice : on sait P(fait|innocent) mais on veut P(innocent|fait)."},
+{id:'p02', cat:'Proba', q:"Qu'est-ce que le sophisme du procureur ? Exemple concret.", a:"Confondre P(X|I) avec P(I|X). Le procureur dit : P(X|I) est minuscule → P(I|X) est minuscule aussi. ERREUR : ce sont 2 probabilités différentes. Affaire Sally Clark : P(2 morts subites|innocente) = 1/73M ≠ P(innocente|2 morts) ≃ 1/2."},
+{id:'p03', cat:'Proba', q:"Exercice TP4 : feuille de triche trouvée parmi 4 étudiants. P(NI) = 1/4, P(X|NI) = 1/20, 10% de tricheurs. Calculer P(I|X).", a:"On pose P(NI) = P(tricheur) = 0.1, P(I) = 0.9, P(X|NI) = 1/20 = 0.05, P(X|I) = 1/(4×20) = 0.0125 (feuille trouvée chez toi alors que tu n'as pas triché).<br>P(NI|X) = [0.05×0.1]/[0.05×0.1+0.0125×0.9] = 0.005/0.01625 ≃ 0.31 soit 31% de chance d'être coupable."},
+{id:'p04', cat:'Proba', q:"Formule P(A∪B) avec intersection. Exemple manga/BD.", a:"P(A∪B) = P(A) + P(B) - P(A∩B). L'intersection est retranchée car sinon elle compte double. Ex : 50% lisent manga, 40% BD classique, 30% les deux → P(A∪B) = 50+40-30 = 60% lisent de la BD."},
+{id:'p05', cat:'Proba', q:"Qu'est-ce que l'espérance mathématique E(X) ? Lien avec la moyenne.", a:"E(X) = Σ xi×pi — la valeur moyenne attendue sur un très grand nombre de répétitions. C'est la moyenne théorique. Ex dé : E(X) = (1+2+3+4+5+6)/6 = 3.5. Lien : quand n→∞, la moyenne empirique converge vers E(X)."},
+];
+
+// ─────────────────────────────────────────────
+// STATE
+// ─────────────────────────────────────────────
+const STORAGE_KEY = 'r216_stats_v1';
+let state = {
+  category: 'all',
+  deck: [],
+  index: 0,
+  flipped: false,
+  progress: {} // id -> 'known'|'unknown'
+};
+
+function saveState() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify({ category: state.category, progress: state.progress }));
+}
+function loadState() {
+  try {
+    const s = JSON.parse(localStorage.getItem(STORAGE_KEY));
+    if (s) { state.category = s.category || 'all'; state.progress = s.progress || {}; }
+  } catch(e) {}
+}
+
+// ─────────────────────────────────────────────
+// DECK
+// ─────────────────────────────────────────────
+function getCategories() {
+  const cats = [...new Set(ALL_CARDS.map(c => c.cat))];
+  return ['all', 'Essentiel', ...cats.filter(c => c !== 'Essentiel')];
+}
+
+function buildDeck() {
+  state.deck = state.category === 'all' ? [...ALL_CARDS] : ALL_CARDS.filter(c => c.cat === state.category);
+  if (state.index >= state.deck.length) state.index = 0;
+}
+
+function shuffleDeck() {
+  for (let i = state.deck.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [state.deck[i], state.deck[j]] = [state.deck[j], state.deck[i]];
+  }
+  state.index = 0; state.flipped = false;
+  render(); toast('Deck mélangé !');
+}
+
+// ─────────────────────────────────────────────
+// RENDER
+// ─────────────────────────────────────────────
+function render() {
+  const card = state.deck[state.index];
+  if (!card) { document.getElementById('cardArea').innerHTML = '<div class="empty"><div class="emoji">📭</div>Aucune carte dans cette catégorie.</div>'; return; }
+
+  const catClass = 'cat-' + card.cat.toLowerCase();
+  document.getElementById('cardFront').className = `card-face card-front ${catClass}`;
+  document.getElementById('cardBack').className = `card-face card-back ${catClass}`;
+  document.getElementById('frontCat').textContent = card.cat;
+  document.getElementById('backCat').textContent = card.cat;
+  const numTxt = `${state.index + 1} / ${state.deck.length}`;
+  document.getElementById('cardNum').textContent = numTxt;
+  document.getElementById('backNum').textContent = numTxt;
+  document.getElementById('cardQ').textContent = card.q;
+  document.getElementById('cardA').innerHTML = card.a;
+
+  document.getElementById('cardInner').classList.toggle('flipped', state.flipped);
+  document.getElementById('verdictZone').style.display = state.flipped ? 'flex' : 'none';
+
+  // Progress
+  const known = Object.values(state.progress).filter(v => v === 'known').length;
+  const unknown = Object.values(state.progress).filter(v => v === 'unknown').length;
+  const total = ALL_CARDS.length;
+  const deckLeft = state.deck.filter(c => !state.progress[c.id]).length;
+
+  document.getElementById('knownCount').textContent = known;
+  document.getElementById('totalCount').textContent = total;
+  document.getElementById('s-known').textContent = known;
+  document.getElementById('s-unknown').textContent = unknown;
+  document.getElementById('s-left').textContent = deckLeft;
+  document.getElementById('progressFill').style.width = (known / total * 100) + '%';
+
+  updateTabs();
+}
+
+function flipCard() {
+  state.flipped = !state.flipped;
+  document.getElementById('cardInner').classList.toggle('flipped', state.flipped);
+  document.getElementById('verdictZone').style.display = state.flipped ? 'flex' : 'none';
+}
+
+function nextCard() {
+  state.index = (state.index + 1) % state.deck.length;
+  state.flipped = false; render();
+}
+function prevCard() {
+  state.index = (state.index - 1 + state.deck.length) % state.deck.length;
+  state.flipped = false; render();
+}
+
+function markCard(known) {
+  const card = state.deck[state.index];
+  if (!card) return;
+  state.progress[card.id] = known ? 'known' : 'unknown';
+  saveState();
+  nextCard();
+}
+
+// ─────────────────────────────────────────────
+// CATEGORY
+// ─────────────────────────────────────────────
+function filterCategory(cat) {
+  state.category = cat; state.index = 0; state.flipped = false;
+  buildDeck(); render();
+}
+
+function resetCategory() {
+  const ids = state.deck.map(c => c.id);
+  ids.forEach(id => delete state.progress[id]);
+  saveState(); state.index = 0; state.flipped = false;
+  render(); toast('Catégorie réinitialisée');
+}
+
+function resetAll() {
+  state.progress = {}; state.index = 0; state.flipped = false;
+  saveState(); render(); toast('Progression réinitialisée');
+}
+
+// ─────────────────────────────────────────────
+// TABS
+// ─────────────────────────────────────────────
+function updateTabs() {
+  const container = document.getElementById('tabsContainer');
+  container.querySelectorAll('.tab').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.cat === state.category);
+  });
+}
+
+function buildTabs() {
+  const container = document.getElementById('tabsContainer');
+  container.innerHTML = '';
+  getCategories().forEach(cat => {
+    const count = cat === 'all' ? ALL_CARDS.length : ALL_CARDS.filter(c => c.cat === cat).length;
+    const btn = document.createElement('button');
+    btn.className = 'tab cat-' + cat.toLowerCase() + (cat === state.category ? ' active' : '');
+    btn.dataset.cat = cat;
+    btn.textContent = cat === 'all' ? `Tout (${count})` : `${cat} (${count})`;
+    btn.onclick = () => filterCategory(cat);
+    container.appendChild(btn);
+  });
+  setTimeout(updateArrows, 50);
+  container.addEventListener('scroll', updateArrows, { passive: true });
+}
+
+function updateArrows() {
+  const el = document.getElementById('tabsContainer');
+  const left = document.getElementById('arrowLeft');
+  const right = document.getElementById('arrowRight');
+  left.classList.toggle('visible', el.scrollLeft > 8);
+  right.classList.toggle('visible', el.scrollLeft + el.clientWidth < el.scrollWidth - 8);
+}
+
+function scrollTabs(dir) {
+  document.getElementById('tabsContainer').scrollBy({ left: dir * 160, behavior: 'smooth' });
+}
+
+// ─────────────────────────────────────────────
+// TOAST
+// ─────────────────────────────────────────────
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2000);
+}
+
+// ─────────────────────────────────────────────
+// KEYBOARD
+// ─────────────────────────────────────────────
+document.addEventListener('keydown', e => {
+  if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); flipCard(); }
+  else if (e.key === 'ArrowRight') nextCard();
+  else if (e.key === 'ArrowLeft') prevCard();
+  else if (e.key === 'k' || e.key === 'K') { if(state.flipped) markCard(true); }
+  else if (e.key === 'j' || e.key === 'J') { if(state.flipped) markCard(false); }
+});
+
+// ─────────────────────────────────────────────
+// INIT
+// ─────────────────────────────────────────────
+loadState();
+buildDeck();
+buildTabs();
+render();
+window.addEventListener('resize', updateArrows);
+</script>
+</body>
+</html>
